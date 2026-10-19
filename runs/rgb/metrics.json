@@ -1,0 +1,111 @@
+{
+  "bands": "rgb",
+  "n_bands": 3,
+  "test_tiles": 4050,
+  "accuracy": 0.9619753086419753,
+  "per_class": {
+    "AnnualCrop": {
+      "precision": 0.9347826086956522,
+      "recall": 0.9555555555555556,
+      "f1": 0.945054945054945,
+      "tiles": 450
+    },
+    "Forest": {
+      "precision": 0.9867549668874173,
+      "recall": 0.9933333333333333,
+      "f1": 0.9900332225913622,
+      "tiles": 450
+    },
+    "HerbaceousVegetation": {
+      "precision": 0.9188034188034188,
+      "recall": 0.9555555555555556,
+      "f1": 0.9368191721132898,
+      "tiles": 450
+    },
+    "Highway": {
+      "precision": 0.9808743169398907,
+      "recall": 0.9573333333333334,
+      "f1": 0.9689608636977058,
+      "tiles": 375
+    },
+    "Industrial": {
+      "precision": 0.976,
+      "recall": 0.976,
+      "f1": 0.976,
+      "tiles": 375
+    },
+    "Pasture": {
+      "precision": 0.9594594594594594,
+      "recall": 0.9466666666666667,
+      "f1": 0.9530201342281879,
+      "tiles": 300
+    },
+    "PermanentCrop": {
+      "precision": 0.9322493224932249,
+      "recall": 0.9173333333333333,
+      "f1": 0.924731182795699,
+      "tiles": 375
+    },
+    "Residential": {
+      "precision": 0.9955056179775281,
+      "recall": 0.9844444444444445,
+      "f1": 0.9899441340782124,
+      "tiles": 450
+    },
+    "River": {
+      "precision": 0.9504132231404959,
+      "recall": 0.92,
+      "f1": 0.934959349593496,
+      "tiles": 375
+    },
+    "SeaLake": {
+      "precision": 0.9846153846153847,
+      "recall": 0.9955555555555555,
+      "f1": 0.9900552486187846,
+      "tiles": 450
+    }
+  },
+  "top_confusions": [
+    {
+      "true": "PermanentCrop",
+      "predicted": "HerbaceousVegetation",
+      "tiles": 19,
+      "share_of_true_class": 0.050666666666666665
+    },
+    {
+      "true": "HerbaceousVegetation",
+      "predicted": "PermanentCrop",
+      "tiles": 11,
+      "share_of_true_class": 0.024444444444444446
+    },
+    {
+      "true": "River",
+      "predicted": "AnnualCrop",
+      "tiles": 10,
+      "share_of_true_class": 0.02666666666666667
+    },
+    {
+      "true": "PermanentCrop",
+      "predicted": "AnnualCrop",
+      "tiles": 10,
+      "share_of_true_class": 0.02666666666666667
+    },
+    {
+      "true": "AnnualCrop",
+      "predicted": "Pasture",
+      "tiles": 7,
+      "share_of_true_class": 0.015555555555555555
+    }
+  ],
+  "focus": {
+    "missed": {
+      "AnnualCrop": 1,
+      "HerbaceousVegetation": 2
+    },
+    "false_alarms": {
+      "HerbaceousVegetation": 2,
+      "Pasture": 2,
+      "River": 2
+    }
+  }
+}
