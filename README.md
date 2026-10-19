@@ -17,6 +17,7 @@ A small convolutional neural network in PyTorch that classifies 64 × 64 px Sent
 ## How to run
 
 Tested on Ubuntu under WSL 2. On a laptop CPU, one training run takes roughly 15 to 40 minutes. Keep the project in the Linux home folder rather than under `/mnt/c`, where reading 27,000 small files is much slower.
+The trained models and data splits from these runs are in `runs/`, so after `bash download_data.sh`, `python evaluate.py --bands all` reproduces the results below without training.
 
 ```bash
 sudo apt update && sudo apt install -y python3-venv python3-pip unzip
