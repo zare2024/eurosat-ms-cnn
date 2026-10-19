@@ -11,17 +11,14 @@ import argparse
 import json
 from pathlib import Path
 
-import matplotlib
+import numpy as np
+import torch
+from matplotlib.figure import Figure
+from matplotlib.ticker import MaxNLocator
+from torch.utils.data import DataLoader
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.ticker import MaxNLocator  # noqa: E402
-import numpy as np  # noqa: E402
-import torch  # noqa: E402
-from torch.utils.data import DataLoader  # noqa: E402
-
-from data import RGB, EuroSAT, read_tile  # noqa: E402
-from model import SmallCNN  # noqa: E402
+from data import RGB, EuroSAT, read_tile
+from model import SmallCNN
 
 
 def predict(model, loader, device="cpu"):
@@ -70,7 +67,8 @@ def rgb_preview(path):
 
 def plot_confusion(cm, classes, path, title):
     share = cm / np.maximum(cm.sum(axis=1, keepdims=True), 1)
-    fig, ax = plt.subplots(figsize=(8, 7))
+    fig = Figure(figsize=(8, 7))
+    ax = fig.subplots()
     im = ax.imshow(share, cmap="Blues", vmin=0, vmax=1)
     ax.set_xticks(range(len(classes)), classes, rotation=45, ha="right")
     ax.set_yticks(range(len(classes)), classes)
@@ -85,7 +83,6 @@ def plot_confusion(cm, classes, path, title):
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="Share of the true class")
     fig.tight_layout()
     fig.savefig(path, dpi=150)
-    plt.close(fig)
 
 
 def plot_mistakes(paths, labels, probs, classes, path, n=16):
@@ -97,7 +94,8 @@ def plot_mistakes(paths, labels, probs, classes, path, n=16):
         return
     cols = 4
     rows = int(np.ceil(len(wrong) / cols))
-    fig, axes = plt.subplots(rows, cols, figsize=(cols * 2.6, rows * 2.9), squeeze=False)
+    fig = Figure(figsize=(cols * 2.6, rows * 2.9))
+    axes = fig.subplots(rows, cols, squeeze=False)
     for ax in axes.ravel():
         ax.axis("off")
     for ax, i in zip(axes.ravel(), wrong):
@@ -107,12 +105,12 @@ def plot_mistakes(paths, labels, probs, classes, path, n=16):
     fig.suptitle("Most confident mistakes on the test tiles (true colour)", fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=150)
-    plt.close(fig)
 
 
 def plot_history(history, path):
     epochs = [h["epoch"] for h in history]
-    fig, (ax_loss, ax_acc) = plt.subplots(1, 2, figsize=(10, 3.5))
+    fig = Figure(figsize=(10, 3.5))
+    ax_loss, ax_acc = fig.subplots(1, 2)
     for key, label in [("train", "training"), ("val", "validation")]:
         ax_loss.plot(epochs, [h[f"{key}_loss"] for h in history], marker="o", label=label)
         ax_acc.plot(epochs, [h[f"{key}_acc"] for h in history], marker="o", label=label)
@@ -125,27 +123,32 @@ def plot_history(history, path):
         ax.legend()
     fig.tight_layout()
     fig.savefig(path, dpi=150)
-    plt.close(fig)
+
+
+def format_counts(counts):
+    """Turn {"River": 2, "Pasture": 1} into 'River 2, Pasture 1', or 'none' if empty."""
+    return ", ".join(f"{name} {n}" for name, n in counts.items()) or "none"
 
 
 def write_results(metrics, path, focus="Forest"):
     lines = [f"# Test results: {metrics['bands']} ({metrics['n_bands']} bands)", "",
-             f"Test tiles: {metrics['test_tiles']} | Overall accuracy: {metrics['accuracy']:.1%}", "",
+             f"Test tiles: {metrics['test_tiles']} | "
+             f"Overall accuracy: {metrics['accuracy']:.1%}", "",
              "| Class | Precision | Recall | F1 | Test tiles |", "|---|---|---|---|---|"]
     for name, s in metrics["per_class"].items():
-        lines.append(f"| {name} | {s['precision']:.3f} | {s['recall']:.3f} | {s['f1']:.3f} | {s['tiles']} |")
+        lines.append(f"| {name} | {s['precision']:.3f} | {s['recall']:.3f} | {s['f1']:.3f} "
+                     f"| {s['tiles']} |")
     lines += ["", "## Most frequent mistakes", "",
               "| True class | Predicted as | Tiles | Share of true class |", "|---|---|---|---|"]
     for m in metrics["top_confusions"]:
-        lines.append(f"| {m['true']} | {m['predicted']} | {m['tiles']} | {m['share_of_true_class']:.1%} |")
+        lines.append(f"| {m['true']} | {m['predicted']} | {m['tiles']} "
+                     f"| {m['share_of_true_class']:.1%} |")
     if focus in metrics["per_class"]:
-        def listing(counts):
-            return ", ".join(f"{name} {n}" for name, n in counts.items()) or "none"
         f = metrics["focus"]
         lines += ["", f"## {focus}", "",
                   f"- Recall: {metrics['per_class'][focus]['recall']:.1%} of {focus} tiles found",
-                  f"- {focus} tiles predicted as something else: {listing(f['missed'])}",
-                  f"- Other tiles predicted as {focus}: {listing(f['false_alarms'])}"]
+                  f"- {focus} tiles predicted as something else: {format_counts(f['missed'])}",
+                  f"- Other tiles predicted as {focus}: {format_counts(f['false_alarms'])}"]
     Path(path).write_text("\n".join(lines) + "\n")
 
 
@@ -211,9 +214,10 @@ def main():
     }
     if args.focus in classes:
         k = classes.index(args.focus)
+        others = [i for i in range(len(classes)) if i != k]
         metrics["focus"] = {
-            "missed": {classes[c]: int(cm[k, c]) for c in range(len(classes)) if c != k and cm[k, c]},
-            "false_alarms": {classes[r]: int(cm[r, k]) for r in range(len(classes)) if r != k and cm[r, k]},
+            "missed": {classes[i]: int(cm[k, i]) for i in others if cm[k, i]},
+            "false_alarms": {classes[i]: int(cm[i, k]) for i in others if cm[i, k]},
         }
 
     (run / "metrics.json").write_text(json.dumps(metrics, indent=2))

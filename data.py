@@ -58,8 +58,8 @@ def band_stats(paths, bands=None, max_tiles=2000, seed=0):
     total, total_sq, n_pixels = 0.0, 0.0, 0
     for i in pick:
         image = read_tile(paths[i], bands).astype(np.float64)
-        total = total + image.sum(axis=(1, 2))
-        total_sq = total_sq + (image ** 2).sum(axis=(1, 2))
+        total += image.sum(axis=(1, 2))
+        total_sq += (image ** 2).sum(axis=(1, 2))
         n_pixels += image.shape[1] * image.shape[2]
     mean = total / n_pixels
     std = np.sqrt(np.maximum(total_sq / n_pixels - mean ** 2, 0.0))

@@ -67,14 +67,14 @@ def main():
     # Normalise with statistics of the training tiles only
     mean, std = band_stats([paths[i] for i in split["train"]], bands)
 
-    def loader(name, shuffle=False, augment=False, batch_size=256):
+    def make_loader(name, shuffle=False, augment=False, batch_size=256):
         idx = split[name]
         data = EuroSAT([paths[i] for i in idx], labels[idx], mean, std, bands, augment)
         return DataLoader(data, batch_size=batch_size, shuffle=shuffle,
                           num_workers=args.workers, persistent_workers=args.workers > 0)
 
-    train_loader = loader("train", shuffle=True, augment=True, batch_size=args.batch_size)
-    val_loader = loader("val")
+    train_loader = make_loader("train", shuffle=True, augment=True, batch_size=args.batch_size)
+    val_loader = make_loader("val")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = SmallCNN(in_channels=len(mean), num_classes=len(classes)).to(device)
